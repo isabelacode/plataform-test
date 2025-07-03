@@ -23,7 +23,7 @@ export function UserMenu() {
   if (!mounted) {
     return (
       <Avatar className="flex-shrink-0 cursor-pointer">
-        <AvatarFallback className="bg-purple-600 text-white">
+        <AvatarFallback className="bg-primary text-primary-foreground">
           <User className="h-5 w-5" />
         </AvatarFallback>
       </Avatar>
@@ -34,21 +34,11 @@ export function UserMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Avatar className="flex-shrink-0 cursor-pointer">
-          <AvatarFallback className="bg-purple-600 text-white">
+          <AvatarFallback className="bg-primary text-primary-foreground">
             <User className="h-5 w-5" />
           </AvatarFallback>
         </Avatar>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="center" side="bottom" alignOffset={0} sideOffset={8}>
-        <DropdownMenuItem onClick={() => setTheme("light")}>
-          <Sun className="mr-2 h-4 w-4" />
-          <span>Tema Claro</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme("dark")}>
-          <Moon className="mr-2 h-4 w-4" />
-          <span>Tema Escuro</span>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
     </DropdownMenu>
   )
 }
