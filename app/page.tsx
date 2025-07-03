@@ -21,6 +21,7 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { getTestsAvailable } from "@/services/dataTestsAvailable";
 import { getAllTestCases } from "@/services/dataTestsParameterized";
 import { CreateTestCaseModal } from "@/components/create-test-case-modal";
+import { EditTestCaseModal } from "@/components/edit-test-case-modal";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("disponivel");
@@ -126,7 +127,7 @@ export default function Home() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <CreateTestCaseModal>
+                    <CreateTestCaseModal onTestCaseCreated={loadTestCases}>
                       <Button
                         variant="default"
                         className="w-full text-sm sm:text-base py-2"
@@ -199,12 +200,17 @@ export default function Home() {
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        className="flex-1 text-sm"
+                      <EditTestCaseModal 
+                        testCase={testCase}
+                        onTestCaseUpdated={loadTestCases}
                       >
-                        Editar
-                      </Button>
+                        <Button
+                          variant="outline"
+                          className="flex-1 text-sm"
+                        >
+                          Editar
+                        </Button>
+                      </EditTestCaseModal>
                       <Button
                         variant="default"
                         className="flex-1 text-sm"

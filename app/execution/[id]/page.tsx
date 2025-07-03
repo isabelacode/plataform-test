@@ -20,7 +20,8 @@ import {
     AlertCircle,
     Activity,
     Zap,
-    Target
+    Target,
+    FileText
 } from "lucide-react";
 import {
     getTestCase,
@@ -152,6 +153,11 @@ export default function ExecutionPage() {
         } catch (error) {
             console.error('Erro ao reiniciar teste:', error);
         }
+    };
+
+    const handleGenerateReport = () => {
+        if (!currentTest) return;
+        router.push(`/relatorio/${currentTest.id}`);
     };
 
     const getStatusColor = () => {
@@ -373,6 +379,23 @@ export default function ExecutionPage() {
                                             {status === "success" ? "Excelente" : "Executando..."}
                                         </Badge>
                                     </div>
+                                </div>
+
+                                <div className="pt-4 border-t">
+                                    <Button 
+                                        onClick={handleGenerateReport}
+                                        disabled={status !== "success" && status !== "error"}
+                                        className="w-full flex items-center justify-center space-x-2"
+                                        variant={status === "success" || status === "error" ? "default" : "outline"}
+                                    >
+                                        <FileText className="h-4 w-4" />
+                                        <span>Gerar Relatório</span>
+                                    </Button>
+                                    {status !== "success" && status !== "error" && (
+                                        <p className="text-xs text-muted-foreground text-center mt-2">
+                                            Disponível após conclusão do teste
+                                        </p>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>

@@ -216,6 +216,24 @@ export async function createTransaction(
     }, 500);
   });
 }
+
+export async function updateTransaction(
+  transactionId: number,
+  updatedTransaction: Omit<TestsParameterized, "id">
+): Promise<TestsParameterized | null> {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = mockTransactions.findIndex(t => t.id === transactionId);
+      if (index !== -1) {
+        mockTransactions[index] = { id: transactionId, ...updatedTransaction };
+        resolve(mockTransactions[index]);
+      } else {
+        resolve(null);
+      }
+    }, 500);
+  });
+}
+
 export async function startTransaction(
   transactionId: number
 ): Promise<TestsParameterized | null> {

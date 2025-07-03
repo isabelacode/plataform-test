@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,14 +12,16 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { createTransaction } from "@/services/dataTestsParameterized";
+import { updateTransaction, getTestCase } from "@/services/dataTestsParameterized";
+import { TestsParameterized, TestCase } from "@/types";
 
-interface CreateTestCaseModalProps {
+interface EditTestCaseModalProps {
   children: React.ReactNode;
-  onTestCaseCreated?: () => void;
+  testCase: TestsParameterized;
+  onTestCaseUpdated?: () => void;
 }
 
-export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestCaseModalProps) {
+export function EditTestCaseModal({ children, testCase, onTestCaseUpdated }: EditTestCaseModalProps) {
   const [formData, setFormData] = useState({
     testName: "",
     description: "",
@@ -29,6 +31,46 @@ export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestC
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const [fullTestCase, setFullTestCase] = useState<TestCase | null>(null);
+
+  useEffect(() => {
+    if (isOpen && testCase) {
+      const loadTestCase = async () => {
+        try {
+          const fullTest = await getTestCase(testCase.id);
+          if (fullTest) {
+            setFullTestCase(fullTest);
+            setFormData({
+              testName: fullTest.name || "",
+              description: fullTest.description || "",
+              responseTime: testCase.responseTime || "",
+              transactionValue: testCase.transactionValue || "",
+              transactionDate: testCase.transactionDate || "",
+            });
+          } else {
+            setFormData({
+              testName: "",
+              description: "",
+              responseTime: testCase.responseTime || "",
+              transactionValue: testCase.transactionValue || "",
+              transactionDate: testCase.transactionDate || "",
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao carregar dados do teste:", error);
+          setFormData({
+            testName: "",
+            description: "",
+            responseTime: testCase.responseTime || "",
+            transactionValue: testCase.transactionValue || "",
+            transactionDate: testCase.transactionDate || "",
+          });
+        }
+      };
+      
+      loadTestCase();
+    }
+  }, [isOpen, testCase]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -42,27 +84,21 @@ export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestC
     setIsLoading(true);
 
     try {
-      await createTransaction({
+      const updatedTransaction = await updateTransaction(testCase.id, {
         responseTime: formData.responseTime,
         transactionValue: formData.transactionValue,
         transactionDate: formData.transactionDate,
       });
 
-      setFormData({
-        testName: "",
-        description: "",
-        responseTime: "",
-        transactionValue: "",
-        transactionDate: "",
-      });
-
-      setIsOpen(false);
-
-      if (onTestCaseCreated) {
-        onTestCaseCreated();
+      if (updatedTransaction) {
+        setIsOpen(false);
+        
+        if (onTestCaseUpdated) {
+          onTestCaseUpdated();
+        }
       }
     } catch (error) {
-      console.error("Erro ao criar caso de teste:", error);
+      console.error("Erro ao atualizar caso de teste:", error);
     } finally {
       setIsLoading(false);
     }
@@ -75,13 +111,13 @@ export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestC
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] w-[95vw] max-w-[600px] px-8 sm:px-12 py-6 sm:py-10 rounded-2xl">
         <DialogHeader className="pb-6 sm:pb-8">
-          <DialogTitle className="text-lg sm:text-xl">Criar Novo Teste de Caso</DialogTitle>
+          <DialogTitle className="text-lg sm:text-xl">Editar Teste de Caso</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-8">
           <div className="space-y-3 sm:space-y-4">
-            <Label htmlFor="testName" className="text-sm sm:text-base">Nome do Teste</Label>
+            <Label htmlFor="editTestName" className="text-sm sm:text-base">Nome do Teste</Label>
             <Input
-              id="testName"
+              id="editTestName"
               placeholder="Adicione um nome"
               value={formData.testName}
               onChange={(e) => handleInputChange("testName", e.target.value)}
@@ -90,9 +126,9 @@ export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestC
           </div>
 
           <div className="space-y-3 sm:space-y-4">
-            <Label htmlFor="description" className="text-sm sm:text-base">Descrição</Label>
+            <Label htmlFor="editDescription" className="text-sm sm:text-base">Descrição</Label>
             <Textarea
-              id="description"
+              id="editDescription"
               placeholder="Adicione uma descrição"
               value={formData.description}
               onChange={(e) => handleInputChange("description", e.target.value)}
@@ -101,9 +137,9 @@ export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestC
           </div>
 
           <div className="space-y-3 sm:space-y-4">
-            <Label htmlFor="responseTime" className="text-sm sm:text-base">Tempo de resposta do banco:</Label>
+            <Label htmlFor="editResponseTime" className="text-sm sm:text-base">Tempo de resposta do banco:</Label>
             <Input
-              id="responseTime"
+              id="editResponseTime"
               placeholder="Adicione um valor"
               value={formData.responseTime}
               onChange={(e) => handleInputChange("responseTime", e.target.value)}
@@ -112,9 +148,9 @@ export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestC
           </div>
 
           <div className="space-y-3 sm:space-y-4">
-            <Label htmlFor="transactionValue" className="text-sm sm:text-base">Valor da Transição:</Label>
+            <Label htmlFor="editTransactionValue" className="text-sm sm:text-base">Valor da Transição:</Label>
             <Input
-              id="transactionValue"
+              id="editTransactionValue"
               placeholder="Adicione um valor"
               value={formData.transactionValue}
               onChange={(e) => handleInputChange("transactionValue", e.target.value)}
@@ -123,9 +159,9 @@ export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestC
           </div>
 
           <div className="space-y-3 sm:space-y-4">
-            <Label htmlFor="transactionDate" className="text-sm sm:text-base">Data da Transição:</Label>
+            <Label htmlFor="editTransactionDate" className="text-sm sm:text-base">Data da Transição:</Label>
             <Input
-              id="transactionDate"
+              id="editTransactionDate"
               type="date"
               placeholder="Adicione um valor"
               value={formData.transactionDate}
@@ -136,7 +172,7 @@ export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestC
 
           <div className="flex justify-center pt-6 sm:pt-8">
             <Button type="submit" className="px-8 sm:px-12 py-3 sm:py-4 h-11 sm:h-12 text-sm sm:text-base w-full sm:w-auto" disabled={isLoading}>
-              {isLoading ? "Criando..." : "Criar Novo Teste de Caso"}
+              {isLoading ? "Salvando..." : "Salvar Alterações"}
             </Button>
           </div>
         </form>
