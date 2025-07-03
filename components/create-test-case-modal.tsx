@@ -12,12 +12,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { createTransaction } from "@/services/dataTestsParameterized";
 
 interface CreateTestCaseModalProps {
   children: React.ReactNode;
+  onTestCaseCreated?: () => void;
 }
 
-export function CreateTestCaseModal({ children }: CreateTestCaseModalProps) {
+export function CreateTestCaseModal({ children, onTestCaseCreated }: CreateTestCaseModalProps) {
   const [formData, setFormData] = useState({
     testName: "",
     description: "",
@@ -25,6 +27,8 @@ export function CreateTestCaseModal({ children }: CreateTestCaseModalProps) {
     transactionValue: "",
     transactionDate: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({
@@ -33,15 +37,39 @@ export function CreateTestCaseModal({ children }: CreateTestCaseModalProps) {
     }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission logic here
-    console.log("Form data:", formData);
-    // You can add logic to save the test case data
+    setIsLoading(true);
+
+    try {
+      await createTransaction({
+        responseTime: formData.responseTime,
+        transactionValue: formData.transactionValue,
+        transactionDate: formData.transactionDate,
+      });
+
+      setFormData({
+        testName: "",
+        description: "",
+        responseTime: "",
+        transactionValue: "",
+        transactionDate: "",
+      });
+
+      setIsOpen(false);
+
+      if (onTestCaseCreated) {
+        onTestCaseCreated();
+      }
+    } catch (error) {
+      console.error("Erro ao criar caso de teste:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <Dialog>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -59,7 +87,7 @@ export function CreateTestCaseModal({ children }: CreateTestCaseModalProps) {
               onChange={(e) => handleInputChange("testName", e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="description">Descrição</Label>
             <Textarea
@@ -69,7 +97,7 @@ export function CreateTestCaseModal({ children }: CreateTestCaseModalProps) {
               onChange={(e) => handleInputChange("description", e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="responseTime">Tempo de resposta do banco:</Label>
             <Input
@@ -79,7 +107,7 @@ export function CreateTestCaseModal({ children }: CreateTestCaseModalProps) {
               onChange={(e) => handleInputChange("responseTime", e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="transactionValue">Valor da Transição:</Label>
             <Input
@@ -89,7 +117,7 @@ export function CreateTestCaseModal({ children }: CreateTestCaseModalProps) {
               onChange={(e) => handleInputChange("transactionValue", e.target.value)}
             />
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="transactionDate">Data da Transição:</Label>
             <Input
@@ -100,10 +128,10 @@ export function CreateTestCaseModal({ children }: CreateTestCaseModalProps) {
               onChange={(e) => handleInputChange("transactionDate", e.target.value)}
             />
           </div>
-          
+
           <div className="flex justify-end pt-4">
-            <Button type="submit" className="px-8">
-              Criar Novo Teste de Caso
+            <Button type="submit" className="px-8" disabled={isLoading}>
+              {isLoading ? "Criando..." : "Criar Novo Teste de Caso"}
             </Button>
           </div>
         </form>

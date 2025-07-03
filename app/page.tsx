@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TestsAvailable } from "@/types";
-import { TestsParameterized } from "@/types";
+import { TestCase } from "@/types";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,18 +19,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getTestsAvailable } from "@/services/dataTestsAvailable";
-import { getTransactions } from "@/services/dataTestsParameterized";
+import { getAllTestCases } from "@/services/dataTestsParameterized";
 import { CreateTestCaseModal } from "@/components/create-test-case-modal";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("disponivel");
   const router = useRouter();
   const [testsAvailables, setTestsAvailables] = useState<TestsAvailable[]>([]);
-  const [transactions, setTransactions] = useState<TestsParameterized[]>([])
+  const [testCases, setTestCases] = useState<TestCase[]>([])
 
   useEffect(() => {
     loadTestsAvailable();
-    loadTransactions();
+    loadTestCases();
   }, []);
 
   const loadTestsAvailable = async () => {
@@ -41,12 +41,12 @@ export default function Home() {
       console.error("Error loading tests available:", error);
     }
   };
-  const loadTransactions = async () => {
+  const loadTestCases = async () => {
     try {
-      const data = await getTransactions();
-      setTransactions(data);
+      const data = await getAllTestCases();
+      setTestCases(data);
     } catch (error) {
-      console.error("Erro ao carregar transações:", error);
+      console.error("Erro ao carregar casos de teste:", error);
     }
   };
 
@@ -172,26 +172,30 @@ export default function Home() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-4 sm:gap-6">
-              {transactions.map((transaction) => (
-                <Card key={transaction.id} className="hover:shadow-md transition-shadow">
+              {testCases.map((testCase) => (
+                <Card key={testCase.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base sm:text-lg leading-tight">
-                      Transação de crédito a vista
+                      {testCase.name}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0 space-y-3">
                     <div className="space-y-2 text-sm text-muted-foreground">
                       <div className="flex justify-between">
-                        <span>Tempo de resposta do banco:</span>
-                        <span className="font-medium text-foreground">{transaction.responseTime}</span>
+                        <span>Tipo:</span>
+                        <span className="font-medium text-foreground">{testCase.type}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Tempo de resposta:</span>
+                        <span className="font-medium text-foreground">{testCase.responseTime}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Valor da Transação:</span>
-                        <span className="font-medium text-foreground">{transaction.transactionValue}</span>
+                        <span className="font-medium text-foreground">{testCase.transactionValue}</span>
                       </div>
                       <div className="flex justify-between">
                         <span>Data da Transação:</span>
-                        <span className="font-medium text-foreground">{transaction.transactionDate}</span>
+                        <span className="font-medium text-foreground">{testCase.transactionDate}</span>
                       </div>
                     </div>
                     <div className="flex gap-2">
@@ -204,7 +208,7 @@ export default function Home() {
                       <Button
                         variant="default"
                         className="flex-1 text-sm"
-                        onClick={() => router.push(`/execution/${transaction.id}`)}
+                        onClick={() => router.push(`/execution/${testCase.id}`)}
                       >
                         Iniciar
                       </Button>

@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserMenu } from "@/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { SimpleLogViewer } from "@/components/simple-log-viewer";
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import {
@@ -21,19 +22,16 @@ import {
     Zap,
     Target
 } from "lucide-react";
+import {
+    getTestCase,
+    startTransaction,
+    stopTransaction,
+    pauseTransaction,
+    restartTransaction
+} from "@/services/dataTestsParameterized";
+import { TestCase } from "@/types";
 
 type ExecutionStatus = "idle" | "running" | "success" | "error" | "paused";
-
-interface TestCase {
-    id: string;
-    name: string;
-    description: string;
-    type: string;
-    value: string;
-    date: string;
-    expectedTime: number;
-    logs: string[];
-}
 
 export default function ExecutionPage() {
     const router = useRouter();
@@ -46,73 +44,25 @@ export default function ExecutionPage() {
     const [logs, setLogs] = useState<string[]>([]);
     const [currentTest, setCurrentTest] = useState<TestCase | null>(null);
 
-    // Mock data for different test cases
-    const testCases: Record<string, TestCase> = {
-        "1": {
-            id: "1",
-            name: "Teste de Transação de Crédito",
-            description: "Validação de transação de crédito à vista",
-            type: "Transação de Crédito",
-            value: "R$ 100,00",
-            date: "03/07/2025",
-            expectedTime: 3000,
-            logs: [
-                "Iniciando teste de transação de crédito...",
-                "Conectando com o banco de dados...",
-                "Validando parâmetros da transação...",
-                "Processando transação de R$ 100,00...",
-                "Verificando tempo de resposta do banco...",
-                "Validando regras de negócio...",
-                "Finalizando processo de teste...",
-                "Teste concluído com sucesso!"
-            ]
-        },
-        "2": {
-            id: "2",
-            name: "Teste de Transação de Débito",
-            description: "Validação de transação de débito automático",
-            type: "Transação de Débito",
-            value: "R$ 250,00",
-            date: "03/07/2025",
-            expectedTime: 2500,
-            logs: [
-                "Iniciando teste de transação de débito...",
-                "Conectando com sistema de débito automático...",
-                "Validando saldo disponível...",
-                "Processando débito de R$ 250,00...",
-                "Verificando autorização bancária...",
-                "Confirmando transação...",
-                "Enviando comprovante...",
-                "Teste de débito finalizado com sucesso!"
-            ]
-        },
-        "3": {
-            id: "3",
-            name: "Teste de PIX",
-            description: "Validação de transferência via PIX",
-            type: "PIX",
-            value: "R$ 75,50",
-            date: "03/07/2025",
-            expectedTime: 1500,
-            logs: [
-                "Iniciando teste de PIX...",
-                "Conectando com sistema PIX...",
-                "Validando chave PIX...",
-                "Processando transferência de R$ 75,50...",
-                "Verificando disponibilidade do banco receptor...",
-                "Confirmando transferência instantânea...",
-                "Enviando comprovante PIX...",
-                "Teste PIX concluído com sucesso!"
-            ]
-        }
-    };
-
     useEffect(() => {
-        if (testId && testCases[testId]) {
-            setCurrentTest(testCases[testId]);
-        } else {
-            // Redirect to 404 or default test if invalid ID
-            router.push('/execution/1');
+        const loadTest = async () => {
+            try {
+                const testIdNum = parseInt(testId);
+                const testCase = await getTestCase(testIdNum);
+
+                if (testCase) {
+                    setCurrentTest(testCase);
+                } else {
+                    router.push('/execution/1');
+                }
+            } catch (error) {
+                console.error('Erro ao carregar teste:', error);
+                router.push('/execution/1');
+            }
+        };
+
+        if (testId) {
+            loadTest();
         }
     }, [testId, router]);
 
@@ -133,40 +83,75 @@ export default function ExecutionPage() {
         return () => clearInterval(interval);
     }, [status]);
 
-    const handleStart = () => {
+    const handleStart = async () => {
         if (!currentTest) return;
 
-        setStatus("running");
-        setProgress(0);
-        setDuration(0);
-        setLogs([]);
+        try {
+            setStatus("running");
+            setProgress(0);
+            setDuration(0);
+            setLogs([]);
 
-        // Use logs específicos do teste atual
-        const testLogs = currentTest.logs;
+            const result = await startTransaction(currentTest.id);
 
-        testLogs.forEach((log, index) => {
-            setTimeout(() => {
-                setLogs(prev => [...prev, log]);
-            }, (index + 1) * 1000);
-        });
+            if (result) {
+                const testLogs = currentTest.logs;
+
+                testLogs.forEach((log, index) => {
+                    setTimeout(() => {
+                        setLogs(prev => [...prev, log]);
+                    }, (index + 1) * 1000);
+                });
+            }
+        } catch (error) {
+            console.error('Erro ao iniciar teste:', error);
+            setStatus("error");
+        }
     };
 
-    const handlePause = () => {
-        setStatus("paused");
+    const handlePause = async () => {
+        if (!currentTest) return;
+
+        try {
+            const result = await pauseTransaction(currentTest.id);
+            if (result) {
+                setStatus("paused");
+            }
+        } catch (error) {
+            console.error('Erro ao pausar teste:', error);
+        }
     };
 
-    const handleStop = () => {
-        setStatus("idle");
-        setProgress(0);
-        setDuration(0);
-        setLogs([]);
+    const handleStop = async () => {
+        if (!currentTest) return;
+
+        try {
+            const result = await stopTransaction(currentTest.id);
+            if (result) {
+                setStatus("idle");
+                setProgress(0);
+                setDuration(0);
+                setLogs([]);
+            }
+        } catch (error) {
+            console.error('Erro ao parar teste:', error);
+        }
     };
 
-    const handleReset = () => {
-        setStatus("idle");
-        setProgress(0);
-        setDuration(0);
-        setLogs([]);
+    const handleReset = async () => {
+        if (!currentTest) return;
+
+        try {
+            const result = await restartTransaction(currentTest.id);
+            if (result) {
+                setStatus("idle");
+                setProgress(0);
+                setDuration(0);
+                setLogs([]);
+            }
+        } catch (error) {
+            console.error('Erro ao reiniciar teste:', error);
+        }
     };
 
     const getStatusColor = () => {
@@ -313,29 +298,10 @@ export default function ExecutionPage() {
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Logs de Execução</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 h-64 overflow-y-auto">
-                                    <div className="font-mono text-sm space-y-1">
-                                        {logs.length === 0 ? (
-                                            <p className="text-muted-foreground">Nenhum log disponível. Clique em "Iniciar" para começar.</p>
-                                        ) : (
-                                            logs.map((log, index) => (
-                                                <div key={index} className="flex items-start space-x-2">
-                                                    <span className="text-muted-foreground text-xs">
-                                                        {formatTime(index + 1)}
-                                                    </span>
-                                                    <span className="text-sm">{log}</span>
-                                                </div>
-                                            ))
-                                        )}
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
+                        <SimpleLogViewer 
+                            testId={currentTest.id}
+                            testName={currentTest.name}
+                        />
                     </div>
 
                     <div className="space-y-6">
@@ -362,11 +328,15 @@ export default function ExecutionPage() {
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Valor:</span>
-                                        <span className="text-sm font-medium">{currentTest.value}</span>
+                                        <span className="text-sm font-medium">{currentTest.transactionValue}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Data:</span>
-                                        <span className="text-sm font-medium">{currentTest.date}</span>
+                                        <span className="text-sm font-medium">{currentTest.transactionDate}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-sm text-muted-foreground">Tempo de Resposta:</span>
+                                        <span className="text-sm font-medium">{currentTest.responseTime}</span>
                                     </div>
                                     <div className="flex justify-between items-center">
                                         <span className="text-sm text-muted-foreground">Tempo esperado:</span>
