@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getTestsAvailable } from "@/services/dataTestsAvailable";
 import { getTransactions } from "@/services/dataTestsParameterized";
+import { CreateTestCaseModal } from "@/components/create-test-case-modal";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState("disponivel");
@@ -125,12 +126,14 @@ export default function Home() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <Button
-                      variant="default"
-                      className="w-full text-sm sm:text-base py-2"
-                    >
-                      Criar Caso de Teste
-                    </Button>
+                    <CreateTestCaseModal>
+                      <Button
+                        variant="default"
+                        className="w-full text-sm sm:text-base py-2"
+                      >
+                        Criar Caso de Teste
+                      </Button>
+                    </CreateTestCaseModal>
                   </CardContent>
                 </Card>
               ))}
@@ -201,7 +204,7 @@ export default function Home() {
                       <Button
                         variant="default"
                         className="flex-1 text-sm"
-                        onClick={() => router.push('/execution')}
+                        onClick={() => router.push(`/execution/${transaction.id}`)}
                       >
                         Iniciar
                       </Button>

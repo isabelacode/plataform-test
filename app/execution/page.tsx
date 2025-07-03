@@ -6,16 +6,16 @@ import { Badge } from "@/components/ui/badge";
 import { UserMenu } from "@/components/user-menu";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { 
-  Play, 
-  Pause, 
-  Square, 
-  RotateCcw, 
-  ArrowLeft, 
-  Clock, 
-  CheckCircle, 
-  XCircle, 
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Play,
+  Pause,
+  Square,
+  RotateCcw,
+  ArrowLeft,
+  Clock,
+  CheckCircle,
+  XCircle,
   AlertCircle,
   Activity,
   Zap,
@@ -24,12 +24,97 @@ import {
 
 type ExecutionStatus = "idle" | "running" | "success" | "error" | "paused";
 
+interface TestCase {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  value: string;
+  date: string;
+  expectedTime: number;
+  logs: string[];
+}
+
 export default function ExecutionPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const testId = searchParams.get('id');
+
   const [status, setStatus] = useState<ExecutionStatus>("idle");
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [logs, setLogs] = useState<string[]>([]);
+  const [currentTest, setCurrentTest] = useState<TestCase | null>(null);
+
+  // Mock data for different test cases
+  const testCases: Record<string, TestCase> = {
+    "1": {
+      id: "1",
+      name: "Teste de Transação de Crédito",
+      description: "Validação de transação de crédito à vista",
+      type: "Transação de Crédito",
+      value: "R$ 100,00",
+      date: "03/07/2025",
+      expectedTime: 3000,
+      logs: [
+        "Iniciando teste de transação de crédito...",
+        "Conectando com o banco de dados...",
+        "Validando parâmetros da transação...",
+        "Processando transação de R$ 100,00...",
+        "Verificando tempo de resposta do banco...",
+        "Validando regras de negócio...",
+        "Finalizando processo de teste...",
+        "Teste concluído com sucesso!"
+      ]
+    },
+    "2": {
+      id: "2",
+      name: "Teste de Transação de Débito",
+      description: "Validação de transação de débito automático",
+      type: "Transação de Débito",
+      value: "R$ 250,00",
+      date: "03/07/2025",
+      expectedTime: 2500,
+      logs: [
+        "Iniciando teste de transação de débito...",
+        "Conectando com sistema de débito automático...",
+        "Validando saldo disponível...",
+        "Processando débito de R$ 250,00...",
+        "Verificando autorização bancária...",
+        "Confirmando transação...",
+        "Enviando comprovante...",
+        "Teste de débito finalizado com sucesso!"
+      ]
+    },
+    "3": {
+      id: "3",
+      name: "Teste de PIX",
+      description: "Validação de transferência via PIX",
+      type: "PIX",
+      value: "R$ 75,50",
+      date: "03/07/2025",
+      expectedTime: 1500,
+      logs: [
+        "Iniciando teste de PIX...",
+        "Conectando com sistema PIX...",
+        "Validando chave PIX...",
+        "Processando transferência de R$ 75,50...",
+        "Verificando disponibilidade do banco receptor...",
+        "Confirmando transferência instantânea...",
+        "Enviando comprovante PIX...",
+        "Teste PIX concluído com sucesso!"
+      ]
+    }
+  };
+
+  useEffect(() => {
+    if (testId && testCases[testId]) {
+      setCurrentTest(testCases[testId]);
+    } else {
+      // Fallback to default test if no ID or invalid ID
+      setCurrentTest(testCases["1"]);
+    }
+  }, [testId]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -49,24 +134,17 @@ export default function ExecutionPage() {
   }, [status]);
 
   const handleStart = () => {
+    if (!currentTest) return;
+
     setStatus("running");
     setProgress(0);
     setDuration(0);
     setLogs([]);
-    
-    // Simular logs de execução
-    const mockLogs = [
-      "Iniciando teste de transação de crédito...",
-      "Conectando com o banco de dados...",
-      "Validando parâmetros da transação...",
-      "Processando transação de R$ 100,00...",
-      "Verificando tempo de resposta do banco...",
-      "Validando regras de negócio...",
-      "Finalizando processo de teste...",
-      "Teste concluído com sucesso!"
-    ];
 
-    mockLogs.forEach((log, index) => {
+    // Use logs específicos do teste atual
+    const testLogs = currentTest.logs;
+
+    testLogs.forEach((log, index) => {
       setTimeout(() => {
         setLogs(prev => [...prev, log]);
       }, (index + 1) * 1000);
@@ -134,7 +212,9 @@ export default function ExecutionPage() {
               </Button>
               <div>
                 <h1 className="text-xl sm:text-2xl font-bold">Execução de Teste</h1>
-                <p className="text-sm text-muted-foreground">Transação de crédito a vista</p>
+                <p className="text-sm text-muted-foreground">
+                  {currentTest?.description || "Carregando teste..."}
+                </p>
               </div>
             </div>
 
@@ -168,7 +248,7 @@ export default function ExecutionPage() {
                     <span>{progress}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2 dark:bg-gray-700">
-                    <div 
+                    <div
                       className={`h-2 rounded-full transition-all duration-300 ${getStatusColor()}`}
                       style={{ width: `${progress}%` }}
                     ></div>
@@ -189,7 +269,7 @@ export default function ExecutionPage() {
                     <Play className="h-4 w-4" />
                     <span>Iniciar</span>
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={handlePause}
@@ -199,7 +279,7 @@ export default function ExecutionPage() {
                     <Pause className="h-4 w-4" />
                     <span>Pausar</span>
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={handleStop}
@@ -209,7 +289,7 @@ export default function ExecutionPage() {
                     <Square className="h-4 w-4" />
                     <span>Parar</span>
                   </Button>
-                  
+
                   <Button
                     variant="outline"
                     onClick={handleReset}
@@ -256,24 +336,37 @@ export default function ExecutionPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Tipo:</span>
-                    <span className="text-sm font-medium">Transação de Crédito</span>
+                {currentTest ? (
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">ID:</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Nome:</span>
+                      <span className="text-sm font-medium">{currentTest.name}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Tipo:</span>
+                      <span className="text-sm font-medium">{currentTest.type}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Valor:</span>
+                      <span className="text-sm font-medium">{currentTest.value}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Data:</span>
+                      <span className="text-sm font-medium">{currentTest.date}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-muted-foreground">Tempo esperado:</span>
+                      <span className="text-sm font-medium">{currentTest.expectedTime}ms</span>
+                    </div>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Valor:</span>
-                    <span className="text-sm font-medium">R$ 100,00</span>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-sm text-muted-foreground">Carregando dados do teste...</p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Data:</span>
-                    <span className="text-sm font-medium">03/07/2025</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm text-muted-foreground">Tempo esperado:</span>
-                    <span className="text-sm font-medium">3000ms</span>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
 
@@ -296,7 +389,7 @@ export default function ExecutionPage() {
                     <div className="text-xs text-muted-foreground">Tempo</div>
                   </div>
                 </div>
-                
+
                 <div className="pt-4 border-t">
                   <div className="flex justify-between items-center">
                     <span className="text-sm text-muted-foreground">Performance:</span>
