@@ -156,7 +156,11 @@ export default function ExecutionPage() {
     };
 
     const handleGenerateReport = () => {
-        if (!currentTest) return;
+        if (!currentTest) {
+            console.error('Teste não encontrado');
+            return;
+        }
+        console.log('Navegando para relatório do teste:', currentTest.id);
         router.push(`/relatorio/${currentTest.id}`);
     };
 
@@ -207,20 +211,19 @@ export default function ExecutionPage() {
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => router.push('/')}
-                                className="flex items-center space-x-2"
+                                className="flex items-center space-x-2 shrink-0"
                             >
                                 <ArrowLeft className="h-4 w-4" />
-                                <span>Voltar</span>
                             </Button>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-bold">Execução de Teste </h1>
-                                <p className="text-sm text-muted-foreground">
+                            <div className="min-w-0 flex-1 hidden sm:block">
+                                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold truncate leading-tight">Execução de Teste </h1>
+                                <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 leading-tight mt-1">
                                     {currentTest.description}
                                 </p>
                             </div>
                         </div>
 
-                        <div className="flex items-center space-x-2 sm:space-x-4 w-full lg:w-auto justify-end">
+                        <div className="flex items-center space-x-2 sm:space-x-4 shrink-0">
                             <ThemeToggle />
                             <UserMenu />
                         </div>
@@ -228,17 +231,17 @@ export default function ExecutionPage() {
                 </div>
             </header>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-2 space-y-6">
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+                    <div className="xl:col-span-2 space-y-4 sm:space-y-6">
                         <Card>
-                            <CardHeader>
-                                <div className="flex items-center justify-between">
-                                    <CardTitle className="flex items-center space-x-2">
+                            <CardHeader className="pb-4">
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                    <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
                                         {getStatusIcon()}
                                         <span>Status da Execução</span>
                                     </CardTitle>
-                                    <Badge variant="secondary" className={`${getStatusColor()} text-white`}>
+                                    <Badge variant="secondary" className={`${getStatusColor()} text-white w-fit`}>
                                         {status.toUpperCase()}
                                     </Badge>
                                 </div>
@@ -262,13 +265,14 @@ export default function ExecutionPage() {
                                     <span>Tempo decorrido: {formatTime(duration)}</span>
                                 </div>
 
-                                <div className="flex flex-wrap gap-2 pt-4">
+                                <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 pt-4">
                                     <Button
                                         onClick={handleStart}
                                         disabled={status === "running"}
-                                        className="flex items-center space-x-2"
+                                        className="flex items-center justify-center space-x-2 text-xs sm:text-sm"
+                                        size="sm"
                                     >
-                                        <Play className="h-4 w-4" />
+                                        <Play className="h-3 w-3 sm:h-4 sm:w-4" />
                                         <span>Iniciar</span>
                                     </Button>
 
@@ -276,9 +280,10 @@ export default function ExecutionPage() {
                                         variant="outline"
                                         onClick={handlePause}
                                         disabled={status !== "running"}
-                                        className="flex items-center space-x-2"
+                                        className="flex items-center justify-center space-x-2 text-xs sm:text-sm"
+                                        size="sm"
                                     >
-                                        <Pause className="h-4 w-4" />
+                                        <Pause className="h-3 w-3 sm:h-4 sm:w-4" />
                                         <span>Pausar</span>
                                     </Button>
 
@@ -286,18 +291,20 @@ export default function ExecutionPage() {
                                         variant="outline"
                                         onClick={handleStop}
                                         disabled={status === "idle"}
-                                        className="flex items-center space-x-2"
+                                        className="flex items-center justify-center space-x-2 text-xs sm:text-sm"
+                                        size="sm"
                                     >
-                                        <Square className="h-4 w-4" />
+                                        <Square className="h-3 w-3 sm:h-4 sm:w-4" />
                                         <span>Parar</span>
                                     </Button>
 
                                     <Button
                                         variant="outline"
                                         onClick={handleReset}
-                                        className="flex items-center space-x-2"
+                                        className="flex items-center justify-center space-x-2 text-xs sm:text-sm"
+                                        size="sm"
                                     >
-                                        <RotateCcw className="h-4 w-4" />
+                                        <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4" />
                                         <span>Reiniciar</span>
                                     </Button>
                                 </div>
@@ -310,88 +317,89 @@ export default function ExecutionPage() {
                         />
                     </div>
 
-                    <div className="space-y-6">
+                    <div className="space-y-4 sm:space-y-6">
                         <Card>
-                            <CardHeader>
-                                <CardTitle className="flex items-center space-x-2">
+                            <CardHeader className="pb-4">
+                                <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
                                     <Zap className="h-4 w-4" />
                                     <span>Detalhes do Teste</span>
                                 </CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">ID:</span>
-                                        <span className="text-sm font-medium">#{currentTest.id}</span>
+                            <CardContent className="space-y-3 sm:space-y-4">
+                                <div className="space-y-2 sm:space-y-3">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">ID:</span>
+                                        <span className="text-xs sm:text-sm font-medium">#{currentTest.id}</span>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Nome:</span>
-                                        <span className="text-sm font-medium">{currentTest.name}</span>
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">Nome:</span>
+                                        <span className="text-xs sm:text-sm font-medium break-words">{currentTest.name}</span>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Tipo:</span>
-                                        <span className="text-sm font-medium">{currentTest.type}</span>
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">Tipo:</span>
+                                        <span className="text-xs sm:text-sm font-medium">{currentTest.type}</span>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Valor:</span>
-                                        <span className="text-sm font-medium">{currentTest.transactionValue}</span>
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">Valor:</span>
+                                        <span className="text-xs sm:text-sm font-medium">{currentTest.transactionValue}</span>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Data:</span>
-                                        <span className="text-sm font-medium">{currentTest.transactionDate}</span>
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">Data:</span>
+                                        <span className="text-xs sm:text-sm font-medium">{currentTest.transactionDate}</span>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Tempo de Resposta:</span>
-                                        <span className="text-sm font-medium">{currentTest.responseTime}</span>
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">Tempo de Resposta:</span>
+                                        <span className="text-xs sm:text-sm font-medium">{currentTest.responseTime}</span>
                                     </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Tempo esperado:</span>
-                                        <span className="text-sm font-medium">{currentTest.expectedTime}ms</span>
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-0">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">Tempo esperado:</span>
+                                        <span className="text-xs sm:text-sm font-medium">{currentTest.expectedTime}ms</span>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
                         <Card>
-                            <CardHeader>
-                                <CardTitle>Métricas</CardTitle>
+                            <CardHeader className="pb-4">
+                                <CardTitle className="text-base sm:text-lg">Métricas</CardTitle>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                        <div className="text-2xl font-bold text-blue-600">
+                            <CardContent className="space-y-3 sm:space-y-4">
+                                <div className="grid grid-cols-2 gap-3 sm:gap-4">
+                                    <div className="text-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                        <div className="text-lg sm:text-2xl font-bold text-blue-600">
                                             {status === "success" ? "100%" : `${progress}%`}
                                         </div>
                                         <div className="text-xs text-muted-foreground">Conclusão</div>
                                     </div>
-                                    <div className="text-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                                        <div className="text-2xl font-bold text-green-600">
+                                    <div className="text-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                                        <div className="text-lg sm:text-2xl font-bold text-green-600">
                                             {formatTime(duration)}
                                         </div>
                                         <div className="text-xs text-muted-foreground">Tempo</div>
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-sm text-muted-foreground">Performance:</span>
-                                        <Badge variant={status === "success" ? "default" : "secondary"}>
+                                <div className="pt-3 sm:pt-4 border-t">
+                                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 sm:gap-0">
+                                        <span className="text-xs sm:text-sm text-muted-foreground">Performance:</span>
+                                        <Badge variant={status === "success" ? "default" : "secondary"} className="w-fit">
                                             {status === "success" ? "Excelente" : "Executando..."}
                                         </Badge>
                                     </div>
                                 </div>
 
-                                <div className="pt-4 border-t">
+                                <div className="pt-3 sm:pt-4 border-t">
                                     <Button 
                                         onClick={handleGenerateReport}
-                                        disabled={status !== "success" && status !== "error"}
-                                        className="w-full flex items-center justify-center space-x-2"
+                                        disabled={!currentTest || (status !== "success" && status !== "error" && status !== "idle")}
+                                        className="w-full flex items-center justify-center space-x-2 text-xs sm:text-sm"
                                         variant={status === "success" || status === "error" ? "default" : "outline"}
+                                        size="sm"
                                     >
-                                        <FileText className="h-4 w-4" />
+                                        <FileText className="h-3 w-3 sm:h-4 sm:w-4" />
                                         <span>Gerar Relatório</span>
                                     </Button>
-                                    {status !== "success" && status !== "error" && (
+                                    {(status !== "success" && status !== "error" && status !== "idle") && (
                                         <p className="text-xs text-muted-foreground text-center mt-2">
                                             Disponível após conclusão do teste
                                         </p>

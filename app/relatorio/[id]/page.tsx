@@ -74,7 +74,7 @@ export default function RelatorioPage() {
         <div className="min-h-screen bg-background">
             <header className="bg-card border-b border-border">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center py-4 gap-4">
+                    <div className="flex justify-between items-center py-4">
                         <div className="flex items-center space-x-4">
                             <Button
                                 variant="ghost"
@@ -83,18 +83,16 @@ export default function RelatorioPage() {
                                 className="flex items-center space-x-2"
                             >
                                 <ArrowLeft className="h-4 w-4" />
-                                <span>Voltar</span>
                             </Button>
-                            <div>
-                                <h1 className="text-xl sm:text-2xl font-bold">Relatório</h1>
-                                <p className="text-sm text-muted-foreground">
+                            <div className="flex items-center space-x-3">
+                               <h1 className="text-lg sm:text-xl lg:text-2xl font-bold">Relatório</h1>
+                                <span className="text-sm text-muted-foreground hidden sm:inline">
                                     Relatório de Execução de Testes - Plataforma de Micro-serviços
-                                </p>
+                                </span>
                             </div>
                         </div>
 
-                        <div className="flex items-center space-x-2 sm:space-x-4 w-full lg:w-auto justify-end">
-
+                        <div className="flex items-center space-x-2 sm:space-x-4">
                             <ThemeToggle />
                             <UserMenu />
                         </div>

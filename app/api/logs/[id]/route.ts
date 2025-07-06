@@ -3,28 +3,31 @@ import { getTestCase } from '@/services/dataTestsParameterized';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
-  const testId = parseInt(params.id);
-  
-  if (isNaN(testId)) {
-    return NextResponse.json({ error: 'Invalid test ID' }, { status: 400 });
-  }
+  try {
+    // Handle both Promise and direct params
+    const resolvedParams = await Promise.resolve(params);
+    const testId = parseInt(resolvedParams.id);
+    
+    if (isNaN(testId)) {
+      return NextResponse.json({ error: 'Invalid test ID' }, { status: 400 });
+    }
 
-  const testCase = await getTestCase(testId);
-  
-  if (!testCase) {
-    return NextResponse.json({ error: 'Test case not found' }, { status: 404 });
-  }
+    const testCase = await getTestCase(testId);
+    
+    if (!testCase) {
+      return NextResponse.json({ error: 'Test case not found' }, { status: 404 });
+    }
 
-  const headers = new Headers({
-    'Content-Type': 'text/event-stream',
-    'Cache-Control': 'no-cache',
-    'Connection': 'keep-alive',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  });
+    const headers = new Headers({
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      'Connection': 'keep-alive',
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    });
 
   const stream = new ReadableStream({
     start(controller) {
@@ -71,4 +74,9 @@ export async function GET(
   });
 
   return new Response(stream, { headers });
+  
+  } catch (error) {
+    console.error('Error in logs API:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }

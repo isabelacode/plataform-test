@@ -116,18 +116,18 @@ export function SimpleLogViewer({ testId, testName }: SimpleLogViewerProps) {
       
       <CardContent>
         <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 h-64 overflow-y-auto">
-          <div className="font-mono text-sm space-y-1">
+          <div className="font-mono text-sm space-y-2">
             {logs.length === 0 ? (
               <p className="text-muted-foreground">
                 Nenhum log ainda. Clique em "Iniciar" para começar o streaming.
               </p>
             ) : (
               logs.map((log, index) => (
-                <div key={index} className="flex items-start space-x-2">
-                  <span className="text-muted-foreground text-xs">
+                <div key={index} className="flex items-start space-x-2 py-1">
+                  <span className="text-muted-foreground text-xs whitespace-nowrap">
                     {new Date().toLocaleTimeString()}
                   </span>
-                  <span className="text-sm">{log}</span>
+                  <span className="text-sm leading-relaxed">{log}</span>
                 </div>
               ))
             )}
